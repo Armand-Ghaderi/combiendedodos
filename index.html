@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Compte à rebours jusqu'à une date cible</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+        #countdown {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compte à rebours vers une date cible</h1>
+    <label for="target-date">Choisir la date et l’heure de fin :</label><br>
+    <input type="datetime-local" id="target-date">
+    <button onclick="startCountdown()">Lancer le compte à rebours</button>
+    <div id="countdown"></div>
+    
+    <script>
+        let interval = null;
+
+        function startCountdown() {
+            // Nettoie l'ancien intervalle si le bouton est recliqué
+            if (interval) clearInterval(interval);
+
+            const input = document.getElementById('target-date').value;
+            if (!input) {
+                document.getElementById('countdown').textContent = "Veuillez sélectionner une date.";
+                return;
+            }
+
+            const targetDate = new Date(input);
+
+            function updateCountdown() {
+                const now = new Date();
+                let diff = targetDate - now;
+
+                if (diff <= 0) {
+                    document.getElementById('countdown').textContent = "Terminé !";
+                    clearInterval(interval);
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+
+                document.getElementById('countdown').textContent =
+                    days + "j " +
+                    (hours < 10 ? "0" : "") + hours + "h " +
+                    (minutes < 10 ? "0" : "") + minutes + "m " +
+                    (seconds < 10 ? "0" : "") + seconds + "s";
+            }
+
+            updateCountdown();
+            interval = setInterval(updateCountdown, 1000);
+        }
+    </script>
+</body>
+</html>
