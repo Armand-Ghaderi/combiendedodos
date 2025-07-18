@@ -9,28 +9,110 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            height: 100vh;
+            min-height: 100vh;
+            background: #f7f7f7;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            background: #f7f7f7;
         }
         h1 {
             font-size: 5em;
+            margin-top: 80px;
             color: #333;
-            margin-bottom: 0.3em;
+            margin-bottom: 0.4em;
         }
         #nights {
-            font-size: 4.5em;
+            font-size: 4.2em;
             font-weight: bold;
             color: #2c3e50;
+            margin-bottom: 48px;
         }
         .ended {
-            color: #e74c3c;
+            color: #e74c3c !important;
         }
         .started {
-            color: #3498db;
+            color: #3498db !important;
+        }
+        #timeline-container {
+            margin-top: 30px;
+            margin-bottom: 40px;
+            width: 90vw;
+            max-width: 650px;
+        }
+        .timeline-wrapper {
+            position: relative;
+            margin: 0 auto 60px;
+        }
+        .timeline {
+            display: flex;
+            position: relative;
+            width: 100%;
+            margin: 60px 0 30px;
+        }
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 6px;
+        }
+        .start-label, .end-label {
+            font-size: 1.38em;
+            color: #444;
+            white-space: nowrap;
+        }
+        .timeline-bar {
+            flex: 1;
+            height: 16px;
+            border-radius: 8px;
+            background: #e2e2e2;
+            position: relative;
+        }
+        .arrow {
+            position: absolute;
+            top: -16px;
+            width: 0;
+            height: 0;
+            border-left: 18px solid #3498db;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            transform: translateY(-50%);
+            transition: left 0.4s cubic-bezier(.4,1.4,.6,1);
+            z-index: 2;
+        }
+        .graduations {
+            position: absolute;
+            top: 18px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: transparent;
+        }
+        .graduation {
+            position: absolute;
+            height: 6px;
+            width: 2px;
+            background: #777;
+            bottom: 0;
+        }
+        .graduation-label {
+            position: absolute;
+            top: 10px;
+            font-size: 0.85em;
+            color: #666;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        .timeline-content {
+            width: 100%;
+        }
+        .today-marker {
+            position: absolute;
+            top: -10px;
+            width: 2px;
+            height: 36px;
+            background: #27ae60;
+            z-index: 1;
         }
     </style>
 </head>
@@ -38,16 +120,38 @@
     <h1>Combien de dodos ?</h1>
     <div id="nights"></div>
 
-    <script>
-        // DÉFINISSEZ ICI VOTRE DATE CIBLE (à minuit)
-        const targetDate = new Date("2025-10-09T07:00:00"); // Format : yyyy-mm-ddT00:00:00
+    <div id="timeline-container">
+        <div class="timeline-wrapper">
+            <div class="timeline-labels">
+                <span class="start-label">Réservation du gîte</span>
+                <span class="end-label">3 gniours de gnéchanceté</span>
+            </div>
+            <div class="timeline">
+                <div class="timeline-bar">
+                    <div class="arrow" id="progress-arrow"></div>
+                    <div class="today-marker" id="today-marker"></div>
+                    <div class="graduations" id="graduations"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // DÉFINIR ICI LES DATES
+        const startDate = new Date("2025-06-20T00:00:00"); // date de réservation (réglable)
+        const targetDate = new Date("2025-10-09T00:00:00"); // date objective (réglable)
+
+        // Calculer le nombre total de jours entre les deux dates (ajoute 1 pour le jour d'arrivée)
+        const startMidnight = new Date(startDate.getTime());
+        startMidnight.setHours(0, 0, 0, 0);
+        const targetMidnight = new Date(targetDate.getTime());
+        targetMidnight.setHours(0, 0, 0, 0);
+        const totalDays = Math.floor((targetMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1;
+
+        // Affiche le nombre de dodos restants
         function calculateNights() {
             const now = new Date();
-            // Pour ne compter que les nuits complètes, on arrondit la date cible à minuit
-            const targetMidnight = new Date(targetDate.setHours(0, 0, 0, 0));
             const todayMidnight = new Date(now.setHours(0, 0, 0, 0));
-
             const diff = targetMidnight - todayMidnight;
             const nightsLeft = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
 
@@ -56,11 +160,69 @@
             nightsEl.className = nightsLeft === 0 ? 'ended' : 'started';
         }
 
+        // Met à jour la flèche et la graduation "aujourd'hui"
+        function updateTimelineProgress() {
+            const now = new Date();
+            const elapsed = Math.floor((now - startMidnight) / (1000 * 60 * 60 * 24));
+            let progress = elapsed / (totalDays - 1);
+            progress = Math.max(0, Math.min(progress, 1)); // On borne entre 0 et 1
+
+            const bar = document.querySelector('.timeline-bar');
+            const arrow = document.getElementById('progress-arrow');
+            const todayMarker = document.getElementById('today-marker');
+            if (bar && arrow && todayMarker) {
+                const barWidth = bar.offsetWidth;
+                arrow.style.left = `${progress * 100}%`;
+                todayMarker.style.left = `${progress * 100}%`;
+            }
+        }
+
+        // Affiche les graduations tous les 10 jours
+        function drawGraduations() {
+            const graduationsEl = document.getElementById('graduations');
+            graduationsEl.innerHTML = ''; // on efface avant de redessiner
+            
+            // Le premier trait (début), puis tous les 10 jours
+            for (let day = 0; day < totalDays; day += 10) {
+                const pos = (day / (totalDays - 1)) * 100;
+                const grad = document.createElement('div');
+                grad.className = 'graduation';
+                grad.style.left = `${pos}%`;
+                graduationsEl.appendChild(grad);
+
+                // On ajoute le petit label du jour (sauf sur le dernier)
+                if (day < totalDays - 1) {
+                    const label = document.createElement('div');
+                    label.className = 'graduation-label';
+                    label.textContent = `J${day}`;
+                    label.style.left = `${pos}%`;
+                    graduationsEl.appendChild(label);
+                }
+            }
+
+            // On ajoute un trait à la fin (Burger King)
+            const gradEnd = document.createElement('div');
+            gradEnd.className = 'graduation';
+            gradEnd.style.left = '100%';
+            graduationsEl.appendChild(gradEnd);
+        }
+
+        // Lancement
         calculateNights();
-        // On rafraîchit le décompte chaque jour à minuit
+        drawGraduations();
+        updateTimelineProgress();
+
+        // Mise à jour quotidienne pour "dodos"
         setTimeout(function() {
             setInterval(calculateNights, 24 * 60 * 60 * 1000);
         }, (24 * 60 * 60 * 1000) - (new Date().getTime() % (24 * 60 * 60 * 1000)));
+
+        // Mise à jour régulière de la frise
+        setInterval(updateTimelineProgress, 60 * 1000); // toutes les minutes
+        window.addEventListener('resize', function() {
+            updateTimelineProgress();
+            drawGraduations();
+        });
     </script>
 </body>
 </html>
