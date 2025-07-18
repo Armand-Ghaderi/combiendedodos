@@ -2,66 +2,65 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Compte à rebours jusqu'à une date cible</title>
+    <title>Combien de dodos ?</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin-top: 100px;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f7f7f7;
         }
-        #countdown {
-            font-size: 2em;
-            margin: 20px 0;
+        h1 {
+            font-size: 5em;
+            color: #333;
+            margin-bottom: 0.3em;
+        }
+        #nights {
+            font-size: 4.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .ended {
+            color: #e74c3c;
+        }
+        .started {
+            color: #3498db;
         }
     </style>
 </head>
 <body>
-    <h1>Compte à rebours vers une date cible</h1>
-    <label for="target-date">Choisir la date et l’heure de fin :</label><br>
-    <input type="datetime-local" id="target-date">
-    <button onclick="startCountdown()">Lancer le compte à rebours</button>
-    <div id="countdown"></div>
-    
+    <h1>Combien de dodos ?</h1>
+    <div id="nights"></div>
+
     <script>
-        let interval = null;
+        // DÉFINISSEZ ICI VOTRE DATE CIBLE (à minuit)
+        const targetDate = new Date("2025-10-09T07:00:00"); // Format : yyyy-mm-ddT00:00:00
 
-        function startCountdown() {
-            // Nettoie l'ancien intervalle si le bouton est recliqué
-            if (interval) clearInterval(interval);
+        function calculateNights() {
+            const now = new Date();
+            // Pour ne compter que les nuits complètes, on arrondit la date cible à minuit
+            const targetMidnight = new Date(targetDate.setHours(0, 0, 0, 0));
+            const todayMidnight = new Date(now.setHours(0, 0, 0, 0));
 
-            const input = document.getElementById('target-date').value;
-            if (!input) {
-                document.getElementById('countdown').textContent = "Veuillez sélectionner une date.";
-                return;
-            }
+            const diff = targetMidnight - todayMidnight;
+            const nightsLeft = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
 
-            const targetDate = new Date(input);
-
-            function updateCountdown() {
-                const now = new Date();
-                let diff = targetDate - now;
-
-                if (diff <= 0) {
-                    document.getElementById('countdown').textContent = "Terminé !";
-                    clearInterval(interval);
-                    return;
-                }
-
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((diff / (1000 * 60)) % 60);
-                const seconds = Math.floor((diff / 1000) % 60);
-
-                document.getElementById('countdown').textContent =
-                    days + "j " +
-                    (hours < 10 ? "0" : "") + hours + "h " +
-                    (minutes < 10 ? "0" : "") + minutes + "m " +
-                    (seconds < 10 ? "0" : "") + seconds + "s";
-            }
-
-            updateCountdown();
-            interval = setInterval(updateCountdown, 1000);
+            const nightsEl = document.getElementById('nights');
+            nightsEl.textContent = nightsLeft;
+            nightsEl.className = nightsLeft === 0 ? 'ended' : 'started';
         }
+
+        calculateNights();
+        // On rafraîchit le décompte chaque jour à minuit
+        setTimeout(function() {
+            setInterval(calculateNights, 24 * 60 * 60 * 1000);
+        }, (24 * 60 * 60 * 1000) - (new Date().getTime() % (24 * 60 * 60 * 1000)));
     </script>
 </body>
 </html>
