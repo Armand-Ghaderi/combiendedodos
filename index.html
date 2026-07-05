@@ -1,228 +1,696 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Combien de dodos ?</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background: #f7f7f7;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-        }
-        h1 {
-            font-size: 5em;
-            margin-top: 80px;
-            color: #333;
-            margin-bottom: 0.4em;
-        }
-        #nights {
-            font-size: 4.2em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 48px;
-        }
-        .ended {
-            color: #e74c3c !important;
-        }
-        .started {
-            color: #3498db !important;
-        }
-        #timeline-container {
-            margin-top: 30px;
-            margin-bottom: 40px;
-            width: 90vw;
-            max-width: 650px;
-        }
-        .timeline-wrapper {
-            position: relative;
-            margin: 0 auto 60px;
-        }
-        .timeline {
-            display: flex;
-            position: relative;
-            width: 100%;
-            margin: 60px 0 30px;
-        }
-        .timeline-labels {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 6px;
-        }
-        .start-label, .end-label {
-            font-size: 1.38em;
-            color: #444;
-            white-space: nowrap;
-        }
-        .timeline-bar {
-            flex: 1;
-            height: 16px;
-            border-radius: 8px;
-            background: #e2e2e2;
-            position: relative;
-        }
-        .arrow {
-            position: absolute;
-            top: -16px;
-            width: 0;
-            height: 0;
-            border-left: 18px solid #3498db;
-            border-top: 12px solid transparent;
-            border-bottom: 12px solid transparent;
-            transform: translateY(-50%);
-            transition: left 0.4s cubic-bezier(.4,1.4,.6,1);
-            z-index: 2;
-        }
-        .graduations {
-            position: absolute;
-            top: 18px;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: transparent;
-        }
-        .graduation {
-            position: absolute;
-            height: 6px;
-            width: 2px;
-            background: #777;
-            bottom: 0;
-        }
-        .graduation-label {
-            position: absolute;
-            top: 10px;
-            font-size: 0.85em;
-            color: #666;
-            transform: translateX(-50%);
-            white-space: nowrap;
-        }
-        .timeline-content {
-            width: 100%;
-        }
-        .today-marker {
-            position: absolute;
-            top: -10px;
-            width: 2px;
-            height: 36px;
-            background: #27ae60;
-            z-index: 1;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Combien de nuits avant l'aventure ?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #ece0bf;
+    --card: #f8f0d9;
+    --ink: #2b1d10;
+    --muted: #7c6a4f;
+    --gold: #a9791b;
+    --gold-dark: #7d5910;
+    --gold-pale: #eee0b6;
+    --wine: #7a2331;
+    --wine-pale: #f1dde0;
+    --line: #d3bf8e;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle, rgba(43,29,16,0.07) 1px, transparent 1.6px),
+      radial-gradient(circle, rgba(43,29,16,0.04) 1px, transparent 1.6px);
+    background-size: 22px 22px, 9px 9px;
+    background-position: 0 0, 4px 4px;
+    color: var(--ink);
+    min-height:100vh;
+    font-family:"EB Garamond", serif;
+  }
+
+  main{
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 6vh 6vw 8vh;
+    text-align:center;
+  }
+
+  .eyebrow{
+    font-family:"Cinzel", serif;
+    font-size: .8rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--wine);
+    font-weight:600;
+    margin: 0 0 1.8rem;
+  }
+
+  .hero{ display:flex; flex-direction:column; align-items:center; gap: 1.6rem; margin-bottom: 3.5rem; }
+  .hero-lead{ font-size: clamp(1.05rem, 2.2vw, 1.35rem); color: var(--muted); font-weight:600; margin:0 0 -.6rem; }
+
+  .hero-number{
+    font-family:"Cinzel", serif;
+    font-weight: 800;
+    font-size: clamp(4.8rem, 19vw, 9.5rem);
+    line-height:.9;
+    color: var(--gold-dark);
+    transition: color .4s ease;
+  }
+  .hero-number.arrived{ color: var(--wine); }
+
+  .hero-sub{ font-size: clamp(1.15rem, 2.6vw, 1.55rem); color: var(--ink); font-weight:600; margin:0; }
+  .hero-sub em{ font-style:normal; color: var(--wine); }
+
+  .hero-stats{ display:flex; gap: 14px; flex-wrap:wrap; justify-content:center; }
+  .stat{ background: var(--card); border: 2px solid var(--line); border-radius: 4px; padding: 12px 22px; min-width: 165px; }
+  .stat-value{ font-family:"Cinzel", serif; font-weight:700; font-size: 1.8rem; color: var(--ink); }
+  .stat-label{ font-size: .78rem; color: var(--muted); margin-top: 2px; line-height:1.3; font-weight:600; }
+
+  #path-wrap{ width: min(92vw, 740px); margin: 0 auto; }
+  #path-svg{ width:100%; height:auto; display:block; overflow: visible; }
+  .endpoint-label{ font-size: .84rem; fill: var(--muted); font-family:"EB Garamond", serif; font-weight:700; }
+  .endpoint-date{ font-size: .78rem; fill: var(--ink); font-family:"EB Garamond", serif; font-weight:700; }
+
+  .badges{ display:flex; gap: 12px; flex-wrap: wrap; justify-content:center; margin-top: 2.4rem; }
+  .badge{
+    display:flex; flex-direction:column; align-items:center; gap: 6px;
+    width: 150px; padding: 16px 10px 13px; border-radius: 4px;
+    border: 2px solid var(--line); background: var(--card); transition: all .3s ease;
+  }
+  .badge.locked{ opacity:.45; }
+  .badge.unlocked{ border-color: var(--gold); box-shadow: 0 4px 0 var(--gold-pale); }
+  .badge-icon{ font-size: 1.7rem; line-height:1; }
+  .badge-name{ font-family:"Cinzel", serif; font-size: .72rem; font-weight:700; color: var(--ink); }
+  .badge-role{ font-size: .68rem; color: var(--wine); font-weight:600; }
+  .badge-meta{ font-size: .66rem; color: var(--muted); font-weight:600; }
+
+  .footer-note{ margin-top: 2.2rem; font-size: .88rem; color: var(--muted); font-weight:600; }
+
+  #game-section{ margin-top: 4.5rem; }
+  .game-tabs{ display:flex; gap:8px; justify-content:center; margin-bottom: 1.4rem; flex-wrap:wrap; }
+  .game-dot{
+    width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line);
+    background: var(--card); color: var(--muted); font-weight:800; font-size: .85rem;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative;
+    font-family:"Cinzel", serif;
+  }
+  .game-dot.active{ border-color: var(--gold); color: var(--gold-dark); background: var(--gold-pale); }
+  .game-dot.today::after{
+    content:"aujourd'hui"; position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+    font-size:.58rem; color: var(--wine); white-space:nowrap; font-weight:800; font-family:"EB Garamond", serif;
+  }
+
+  .game-card{ background: var(--card); border: 2px solid var(--line); border-radius: 6px; padding: 1.8rem 1.5rem 2rem; text-align:center; }
+  .game-title{ font-family:"Cinzel", serif; font-size: 1.3rem; margin: 0 0 .4rem; color: var(--ink); }
+  .game-instructions{ font-size: .92rem; color: var(--muted); margin: 0 0 1.2rem; font-weight:600; }
+
+  .game-btn{
+    margin-top: 1.2rem; font-family:"Cinzel", serif; font-weight:700; font-size: .85rem;
+    padding: 10px 24px; border-radius: 3px; border: 2px solid var(--gold-dark); background: var(--gold);
+    color: #fff; cursor:pointer; letter-spacing:.03em;
+  }
+  .game-btn:hover{ background: var(--gold-dark); }
+
+  .game-result{ font-weight:700; font-size: 1.05rem; color: var(--wine); margin-top: .8rem; min-height: 1.4rem; font-family:"Cinzel", serif; }
+
+  .hunt-area{ position:relative; height: 260px; background: var(--gold-pale); border-radius: 6px; overflow:hidden; }
+  .hunt-hud{ display:flex; justify-content:space-between; padding: 8px 14px; font-weight:700; font-size:.85rem; color: var(--gold-dark); position:relative; z-index:2; font-family:"Cinzel", serif; }
+  .hunt-item{ position:absolute; font-size: 2rem; cursor:pointer; transform: translate(-50%,-50%); user-select:none; }
+
+  .memo-hud{ font-weight:700; font-size:.9rem; color: var(--gold-dark); margin-bottom: 10px; font-family:"Cinzel", serif; }
+  .memo-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap: 8px; max-width: 360px; margin: 0 auto; }
+  .memo-card{ aspect-ratio:1; font-size: 1.5rem; background: var(--gold-pale); border: 2px solid var(--line); border-radius: 4px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .memo-card.matched{ opacity:.4; cursor:default; background: var(--wine-pale); }
+
+  .type-hud{ font-weight:700; font-size:.9rem; color: var(--gold-dark); margin-bottom: 12px; font-family:"Cinzel", serif; }
+  .type-word{ font-family:"Cinzel", serif; font-size: 2rem; color: var(--wine); margin-bottom: 14px; }
+  .type-input{ font-size: 1.1rem; padding: 10px 14px; border-radius: 4px; border: 2px solid var(--line); text-align:center; width: 220px; font-family:"EB Garamond", serif; font-weight:700; }
+  .type-input:focus{ outline: none; border-color: var(--gold); }
+
+  .simon-hud{ font-weight:700; font-size:.9rem; color: var(--gold-dark); margin-bottom: 12px; font-family:"Cinzel", serif; }
+  .simon-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap: 10px; max-width: 220px; margin: 0 auto; }
+  .simon-tile{ font-size: 2rem; aspect-ratio:1; border-radius: 6px; border: 2px solid var(--line); background: var(--gold-pale); cursor:pointer; }
+  .simon-tile.lit{ background: var(--gold); transform: scale(.95); }
+
+  .sort-hud{ font-weight:700; font-size:.9rem; color: var(--gold-dark); margin-bottom: 14px; font-family:"Cinzel", serif; }
+  .sort-zone{ display:flex; align-items:center; justify-content:center; gap: 24px; }
+  .sort-label{ font-size:.85rem; font-weight:700; color: var(--muted); }
+  .sort-item{ font-size: 3.4rem; }
+
+  .count-hud{ font-weight:700; font-size:.85rem; color: var(--gold-dark); margin-bottom: 12px; font-family:"Cinzel", serif; }
+  .count-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap: 6px; max-width: 280px; margin: 0 auto; }
+  .count-cell{ font-size: 1.5rem; aspect-ratio:1; display:flex; align-items:center; justify-content:center; background: var(--gold-pale); border-radius: 4px; }
+  .count-question{ font-weight:700; margin: 10px 0; }
+  .count-options{ display:flex; gap: 10px; justify-content:center; flex-wrap:wrap; }
+  .count-opt{ font-family:"Cinzel", serif; font-size: 1.1rem; font-weight:700; padding: 10px 18px; border-radius: 4px; border: 2px solid var(--line); background: var(--card); cursor:pointer; }
+  .count-opt:hover{ border-color: var(--gold); }
+
+  .scroll-hint{
+    position: fixed; left:50%; bottom: 18px; transform: translateX(-50%);
+    background: var(--gold); color:#fff; padding: 12px 22px; border-radius: 3px;
+    display:flex; align-items:center; gap:8px; font-weight:700; font-size:.88rem;
+    font-family:"Cinzel", serif; box-shadow: 0 6px 18px rgba(43,29,16,.25);
+    cursor:pointer; z-index: 50; transition: opacity .3s ease, transform .3s ease; border: 2px solid var(--gold-dark);
+  }
+  .scroll-hint.hidden{ opacity:0; pointer-events:none; transform: translateX(-50%) translateY(20px); }
+  .scroll-arrow{ display:inline-block; animation: bounce 1.3s infinite; font-size:1.1rem; }
+  @keyframes bounce{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(5px); } }
+  @media (prefers-reduced-motion: reduce){ .scroll-arrow{ animation:none; } }
+
+  .start-screen{ display:flex; flex-direction:column; align-items:center; gap: 14px; padding: 1.2rem 0; }
+  .start-screen p{ font-size:.85rem; color: var(--muted); font-weight:600; margin:0; }
+</style>
 </head>
 <body>
-    <h1>Combien de dodos ?</h1>
-    <div id="nights"></div>
 
-    <div id="timeline-container">
-        <div class="timeline-wrapper">
-            <div class="timeline-labels">
-                <span class="start-label">Réservation du gîte</span>
-                <span class="end-label">3 gniours de gnéchanceté</span>
-            </div>
-            <div class="timeline">
-                <div class="timeline-bar">
-                    <div class="arrow" id="progress-arrow"></div>
-                    <div class="today-marker" id="today-marker"></div>
-                    <div class="graduations" id="graduations"></div>
-                </div>
-            </div>
-        </div>
+<main>
+  <p class="eyebrow">Journal de la longue attente</p>
+
+  <div class="hero">
+    <div>
+      <p class="hero-lead">Il reste</p>
+      <div class="hero-number" id="nights">–</div>
+      <p class="hero-sub" id="hero-sub"><em>nuits de veille</em> avant l'aventure</p>
     </div>
 
-    <script>
-        // DÉFINIR ICI LES DATES
-        const startDate = new Date("2025-06-20T00:00:00"); // date de réservation (réglable)
-        const targetDate = new Date("2025-10-09T00:00:00"); // date objective (réglable)
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-value" id="elapsed">–</div>
+        <div class="stat-label">jours de préparation écoulés</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="total-wait">–</div>
+        <div class="stat-label">jours d'attente au total</div>
+      </div>
+    </div>
+  </div>
 
-        // Calculer le nombre total de jours entre les deux dates (ajoute 1 pour le jour d'arrivée)
-        const startMidnight = new Date(startDate.getTime());
-        startMidnight.setHours(0, 0, 0, 0);
-        const targetMidnight = new Date(targetDate.getTime());
-        targetMidnight.setHours(0, 0, 0, 0);
-        const totalDays = Math.floor((targetMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1;
+  <div id="path-wrap">
+    <svg id="path-svg" viewBox="0 0 1000 220" role="img" aria-labelledby="path-title">
+      <title id="path-title">Route de la taverne jusqu'au début de la campagne</title>
+      <path id="trail" d="M 50 175 C 330 175, 640 60, 950 55" fill="none" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+      <g id="milestones"></g>
+      <circle id="marker-glow" r="16" fill="var(--gold)" opacity="0.2"/>
+      <text id="marker" font-size="24" text-anchor="middle" dominant-baseline="central">🎲</text>
+      <text x="50" y="205" text-anchor="start" class="endpoint-label">🍺 Convocation à la taverne</text>
+      <text id="start-date" x="50" y="150" text-anchor="start" class="endpoint-date"></text>
+      <text x="950" y="35" text-anchor="end" class="endpoint-label">🐉 Début de la campagne</text>
+      <text id="end-date" x="950" y="90" text-anchor="end" class="endpoint-date"></text>
+    </svg>
+  </div>
 
-        // Affiche le nombre de dodos restants
-        function calculateNights() {
-            const now = new Date();
-            const todayMidnight = new Date(now.setHours(0, 0, 0, 0));
-            const diff = targetMidnight - todayMidnight;
-            const nightsLeft = Math.max(Math.floor(diff / (1000 * 60 * 60 * 24)), 0);
+  <div class="badges" id="badges"></div>
 
-            const nightsEl = document.getElementById('nights');
-            nightsEl.textContent = nightsLeft;
-            nightsEl.className = nightsLeft === 0 ? 'ended' : 'started';
+  <p class="footer-note" id="footer-note"></p>
+
+  <section id="game-section">
+    <p class="eyebrow">Épreuve du jour</p>
+    <div class="game-tabs" id="game-tabs"></div>
+    <div class="game-card">
+      <h2 class="game-title" id="game-title"></h2>
+      <p class="game-instructions" id="game-instructions"></p>
+      <div id="game-container"></div>
+      <p class="game-result" id="game-result"></p>
+      <button class="game-btn" id="game-restart" style="display:none">Relancer les dés</button>
+    </div>
+  </section>
+</main>
+
+<button class="scroll-hint" id="scroll-hint">
+  <span>🎲 Une épreuve du jour t'attend</span>
+  <span class="scroll-arrow">⌄</span>
+</button>
+
+<script>
+  // ================= DATES A REGLER =================
+  const startDate  = new Date("2025-10-23T00:00:00"); // début de l'attente
+  const targetDate = new Date("2026-10-22T00:00:00"); // jour J attendu
+  // ====================================================
+
+  const MILESTONES = [
+    { pct: 0.25, icon: '⚔️', name: 'Guaak', role: 'nain guerrier' },
+    { pct: 0.50, icon: '🔮', name: 'Aurélas', role: 'mage demi-elfe' },
+    { pct: 0.75, icon: '🛡️', name: 'Edgaär Deribbs', role: 'paladin de St Cuthbert' },
+    { pct: 1.00, icon: '🎲', name: 'Thutin', role: 'maître de jeu' }
+  ];
+
+  const startMidnight = new Date(startDate);  startMidnight.setHours(0,0,0,0);
+  const targetMidnight = new Date(targetDate); targetMidnight.setHours(0,0,0,0);
+  const totalWaitDays = Math.floor((targetMidnight - startMidnight) / 864e5) + 1;
+
+  const fmtLong = new Intl.DateTimeFormat('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+
+  function fieldsToday(){
+    const now = new Date();
+    const today = new Date(now); today.setHours(0,0,0,0);
+    const diff = targetMidnight - today;
+    const nightsLeft = Math.max(Math.floor(diff / 864e5), 0);
+    const elapsed = Math.max(Math.floor((today - startMidnight) / 864e5), 0);
+    let progress = elapsed / (totalWaitDays - 1);
+    progress = Math.max(0, Math.min(progress, 1));
+    return { nightsLeft, elapsed, progress };
+  }
+
+  function animateCount(el, to, duration){
+    const start = performance.now();
+    function frame(now){
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(eased * to);
+      if(t < 1) requestAnimationFrame(frame);
+      else el.textContent = to;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function render(){
+    const { nightsLeft, elapsed, progress } = fieldsToday();
+
+    const nightsEl = document.getElementById('nights');
+    const subEl = document.getElementById('hero-sub');
+    if(nightsLeft === 0){
+      nightsEl.classList.add('arrived');
+      nightsEl.textContent = '0';
+      subEl.innerHTML = "<em>La campagne commence !</em>";
+    } else {
+      nightsEl.classList.remove('arrived');
+      animateCount(nightsEl, nightsLeft, 900);
+    }
+
+    document.getElementById('elapsed').textContent = elapsed;
+    document.getElementById('total-wait').textContent = totalWaitDays;
+    document.getElementById('start-date').textContent = fmtLong.format(startDate);
+    document.getElementById('end-date').textContent = fmtLong.format(targetDate);
+
+    const pct = Math.round(progress * 100);
+    document.getElementById('footer-note').innerHTML = `<b>${pct}%</b> du chemin vers la taverne est parcouru`;
+
+    updatePath(progress);
+    renderBadges(elapsed, progress);
+    setupGames(elapsed);
+  }
+
+  function updatePath(progress){
+    const path = document.getElementById('trail');
+    const length = path.getTotalLength();
+    const point = path.getPointAtLength(progress * length);
+
+    document.getElementById('marker-glow').setAttribute('cx', point.x);
+    document.getElementById('marker-glow').setAttribute('cy', point.y);
+    const marker = document.getElementById('marker');
+    marker.setAttribute('x', point.x);
+    marker.setAttribute('y', point.y);
+
+    const milestonesEl = document.getElementById('milestones');
+    milestonesEl.innerHTML = '';
+    MILESTONES.forEach(m => {
+      const p = path.getPointAtLength(Math.min(m.pct, 1) * length);
+      const unlocked = progress >= m.pct;
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', p.x);
+      t.setAttribute('y', p.y - 16);
+      t.setAttribute('font-size', 18);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('opacity', unlocked ? 1 : 0.28);
+      t.textContent = m.icon;
+      milestonesEl.appendChild(t);
+    });
+  }
+
+  function renderBadges(elapsed, progress){
+    const wrap = document.getElementById('badges');
+    wrap.innerHTML = '';
+    MILESTONES.forEach(m => {
+      const unlocked = progress >= m.pct;
+      const milestoneDayIndex = Math.round(m.pct * (totalWaitDays - 1));
+      const daysToGo = milestoneDayIndex - elapsed;
+      const div = document.createElement('div');
+      div.className = 'badge ' + (unlocked ? 'unlocked' : 'locked');
+      const milestoneDate = new Date(startMidnight);
+      milestoneDate.setDate(milestoneDate.getDate() + milestoneDayIndex);
+      div.innerHTML =
+        `<div class="badge-icon">${m.icon}</div>` +
+        `<div class="badge-name">${m.name}</div>` +
+        `<div class="badge-role">${m.role}</div>` +
+        `<div class="badge-meta">${unlocked ? 'a rejoint le ' + fmtLong.format(milestoneDate) : 'dans ' + daysToGo + ' j'}</div>`;
+      wrap.appendChild(div);
+    });
+  }
+
+  // ================= EPREUVES DU JOUR =================
+  let activeTimers = [];
+  let currentCleanup = null;
+  function clearActiveTimers(){
+    activeTimers.forEach(id => { clearInterval(id); clearTimeout(id); });
+    activeTimers = [];
+  }
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  const GAMES = [
+    {
+      name: 'Chasse aux gobelins', icon: '👺',
+      instructions: "Clique sur les gobelins, ne touche pas au mage Aurélas ! 15 secondes chrono.",
+      init(container, onEnd){
+        container.innerHTML = `<div class="hunt-area" id="hunt-area"><div class="hunt-hud"><span>Score : <b id="hunt-score">0</b></span><span>Temps : <b id="hunt-time">15</b>s</span></div></div>`;
+        const area = container.querySelector('#hunt-area');
+        const scoreEl = container.querySelector('#hunt-score');
+        const timeEl = container.querySelector('#hunt-time');
+        let score = 0, timeLeft = 15;
+        function spawn(){
+          const isGoblin = Math.random() < 0.7;
+          const el = document.createElement('div');
+          el.className = 'hunt-item';
+          el.textContent = isGoblin ? '👺' : '🧙';
+          el.style.left = (10 + Math.random() * 80) + '%';
+          el.style.top = (18 + Math.random() * 65) + '%';
+          el.addEventListener('click', () => {
+            score += isGoblin ? 1 : -1;
+            scoreEl.textContent = score;
+            el.remove();
+          });
+          area.appendChild(el);
+          activeTimers.push(setTimeout(() => el.remove(), 900));
         }
-
-        // Met à jour la flèche et la graduation "aujourd'hui"
-        function updateTimelineProgress() {
-            const now = new Date();
-            const elapsed = Math.floor((now - startMidnight) / (1000 * 60 * 60 * 24));
-            let progress = elapsed / (totalDays - 1);
-            progress = Math.max(0, Math.min(progress, 1)); // On borne entre 0 et 1
-
-            const bar = document.querySelector('.timeline-bar');
-            const arrow = document.getElementById('progress-arrow');
-            const todayMarker = document.getElementById('today-marker');
-            if (bar && arrow && todayMarker) {
-                const barWidth = bar.offsetWidth;
-                arrow.style.left = `${progress * 100}%`;
-                todayMarker.style.left = `${progress * 100}%`;
+        activeTimers.push(setInterval(spawn, 650));
+        activeTimers.push(setInterval(() => {
+          timeLeft--;
+          timeEl.textContent = timeLeft;
+          if(timeLeft <= 0){
+            clearActiveTimers();
+            onEnd(`Score final : ${score}`);
+          }
+        }, 1000));
+      }
+    },
+    {
+      name: 'Mémoire des runes', icon: '🧠',
+      instructions: "Trouve les paires de symboles en un minimum de coups.",
+      init(container, onEnd){
+        const icons = ['⚔️','🛡️','🔮','🐉','📜','🪙'];
+        const deck = shuffle(icons.concat(icons));
+        container.innerHTML = `<div class="memo-hud">Coups : <b id="memo-moves">0</b></div><div class="memo-grid" id="memo-grid"></div>`;
+        const grid = container.querySelector('#memo-grid');
+        const movesEl = container.querySelector('#memo-moves');
+        let first = null, lock = false, moves = 0, matched = 0;
+        deck.forEach(sym => {
+          const card = document.createElement('button');
+          card.className = 'memo-card';
+          card.dataset.sym = sym;
+          card.textContent = '❔';
+          card.addEventListener('click', () => {
+            if(lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+            card.textContent = sym;
+            card.classList.add('flipped');
+            if(!first){ first = card; return; }
+            moves++;
+            movesEl.textContent = moves;
+            lock = true;
+            if(first.dataset.sym === card.dataset.sym){
+              first.classList.add('matched'); card.classList.add('matched');
+              matched++;
+              first = null; lock = false;
+              if(matched === icons.length){
+                activeTimers.push(setTimeout(() => onEnd(`Bravo, terminé en ${moves} coups !`), 400));
+              }
+            } else {
+              activeTimers.push(setTimeout(() => {
+                first.textContent = '❔'; first.classList.remove('flipped');
+                card.textContent = '❔'; card.classList.remove('flipped');
+                first = null; lock = false;
+              }, 700));
             }
-        }
-
-        // Affiche les graduations tous les 10 jours
-        function drawGraduations() {
-            const graduationsEl = document.getElementById('graduations');
-            graduationsEl.innerHTML = ''; // on efface avant de redessiner
-            
-            // Le premier trait (début), puis tous les 10 jours
-            for (let day = 0; day < totalDays; day += 10) {
-                const pos = (day / (totalDays - 1)) * 100;
-                const grad = document.createElement('div');
-                grad.className = 'graduation';
-                grad.style.left = `${pos}%`;
-                graduationsEl.appendChild(grad);
-
-                // On ajoute le petit label du jour (sauf sur le dernier)
-                if (day < totalDays - 1) {
-                    const label = document.createElement('div');
-                    label.className = 'graduation-label';
-                    label.textContent = `J${day}`;
-                    label.style.left = `${pos}%`;
-                    graduationsEl.appendChild(label);
-                }
-            }
-
-            // On ajoute un trait à la fin (Burger King)
-            const gradEnd = document.createElement('div');
-            gradEnd.className = 'graduation';
-            gradEnd.style.left = '100%';
-            graduationsEl.appendChild(gradEnd);
-        }
-
-        // Lancement
-        calculateNights();
-        drawGraduations();
-        updateTimelineProgress();
-
-        // Mise à jour quotidienne pour "dodos"
-        setTimeout(function() {
-            setInterval(calculateNights, 24 * 60 * 60 * 1000);
-        }, (24 * 60 * 60 * 1000) - (new Date().getTime() % (24 * 60 * 60 * 1000)));
-
-        // Mise à jour régulière de la frise
-        setInterval(updateTimelineProgress, 60 * 1000); // toutes les minutes
-        window.addEventListener('resize', function() {
-            updateTimelineProgress();
-            drawGraduations();
+          });
+          grid.appendChild(card);
         });
-    </script>
+      }
+    },
+    {
+      name: 'Lance le sort', icon: '⌨️',
+      instructions: "Écris le mot affiché le plus vite possible pour lancer le sort. 20 secondes.",
+      init(container, onEnd){
+        const words = ['epee','bouclier','dragon','parchemin','potion','donjon'];
+        container.innerHTML = `<div class="type-hud">Score : <b id="type-score">0</b> · Temps : <b id="type-time">20</b>s</div><div class="type-word" id="type-word"></div><input id="type-input" class="type-input" autocomplete="off" placeholder="Écris ici..." />`;
+        const wordEl = container.querySelector('#type-word');
+        const input = container.querySelector('#type-input');
+        const scoreEl = container.querySelector('#type-score');
+        const timeEl = container.querySelector('#type-time');
+        let score = 0, timeLeft = 20, current = '';
+        function nextWord(){
+          current = words[Math.floor(Math.random() * words.length)];
+          wordEl.textContent = current;
+          input.value = '';
+        }
+        input.addEventListener('input', () => {
+          if(input.value.trim().toLowerCase() === current){
+            score++; scoreEl.textContent = score; nextWord();
+          }
+        });
+        nextWord();
+        input.focus();
+        activeTimers.push(setInterval(() => {
+          timeLeft--; timeEl.textContent = timeLeft;
+          if(timeLeft <= 0){
+            clearActiveTimers();
+            input.disabled = true;
+            onEnd(`Score final : ${score} sort${score > 1 ? 's' : ''}`);
+          }
+        }, 1000));
+      }
+    },
+    {
+      name: 'Séquence runique', icon: '🔁',
+      instructions: "Observe la séquence de runes qui s'allument puis reproduis-la.",
+      init(container, onEnd){
+        const tiles = ['⚔️','🛡️','🔮','🐉'];
+        container.innerHTML = `<div class="simon-hud">Niveau : <b id="simon-level">1</b></div><div class="simon-grid" id="simon-grid"></div>`;
+        const grid = container.querySelector('#simon-grid');
+        const levelEl = container.querySelector('#simon-level');
+        let sequence = [], playerStep = 0, level = 1, accepting = false;
+        function addStep(){ sequence.push(Math.floor(Math.random() * 4)); }
+        function highlight(idx){
+          const btn = grid.children[idx];
+          btn.classList.add('lit');
+          activeTimers.push(setTimeout(() => btn.classList.remove('lit'), 400));
+        }
+        function playSequence(){
+          accepting = false;
+          let i = 0;
+          const interval = setInterval(() => {
+            highlight(sequence[i]);
+            i++;
+            if(i >= sequence.length){
+              clearInterval(interval);
+              accepting = true; playerStep = 0;
+            }
+          }, 700);
+          activeTimers.push(interval);
+        }
+        tiles.forEach((sym, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'simon-tile';
+          btn.textContent = sym;
+          btn.addEventListener('click', () => {
+            if(!accepting) return;
+            highlight(idx);
+            if(idx === sequence[playerStep]){
+              playerStep++;
+              if(playerStep === sequence.length){
+                level++;
+                levelEl.textContent = level;
+                accepting = false;
+                addStep();
+                activeTimers.push(setTimeout(playSequence, 800));
+              }
+            } else {
+              accepting = false;
+              onEnd(`Épreuve terminée, niveau atteint : ${level}`);
+            }
+          });
+          grid.appendChild(btn);
+        });
+        addStep();
+        activeTimers.push(setTimeout(playSequence, 600));
+      }
+    },
+    {
+      name: 'Tri du butin', icon: '↔️',
+      instructions: "Flèche gauche pour garder une pièce d'or, flèche droite pour rejeter un objet maudit. Sois rapide !",
+      init(container, onEnd){
+        container.innerHTML = `<div class="sort-hud">Score : <b id="sort-score">0</b></div><div class="sort-zone"><span class="sort-label">← or</span><div class="sort-item" id="sort-item"></div><span class="sort-label">maudit →</span></div>`;
+        const itemEl = container.querySelector('#sort-item');
+        const scoreEl = container.querySelector('#sort-score');
+        let score = 0, current = null, speed = 1400, timeoutId = null, ended = false;
+        function handler(e){
+          if(ended) return;
+          if(e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          const guess = e.key === 'ArrowLeft' ? 'or' : 'maudit';
+          clearTimeout(timeoutId);
+          if(guess === current){
+            score++; scoreEl.textContent = score;
+            speed = Math.max(600, speed - 40);
+            nextItem();
+          } else {
+            finish();
+          }
+        }
+        function finish(){
+          ended = true;
+          document.removeEventListener('keydown', handler);
+          onEnd(`Score final : ${score}`);
+        }
+        function nextItem(){
+          current = Math.random() < 0.5 ? 'or' : 'maudit';
+          itemEl.textContent = current === 'or' ? '🪙' : '💀';
+          timeoutId = setTimeout(finish, speed);
+          activeTimers.push(timeoutId);
+        }
+        document.addEventListener('keydown', handler);
+        nextItem();
+        return () => { ended = true; document.removeEventListener('keydown', handler); };
+      }
+    },
+    {
+      name: 'Compte les dragons', icon: '🔍',
+      instructions: "Mémorise la grille puis clique sur le bon nombre de dragons vus. 5 manches.",
+      init(container, onEnd){
+        const totalRounds = 5;
+        let round = 0, correct = 0;
+        function playRound(){
+          let dragonCount = 0;
+          const symbols = [];
+          for(let i = 0; i < 16; i++){
+            const r = Math.random();
+            let s;
+            if(r < 0.3){ s = '🐉'; dragonCount++; }
+            else if(r < 0.65){ s = '👺'; }
+            else { s = '🪙'; }
+            symbols.push(s);
+          }
+          container.innerHTML = `<div class="count-hud">Manche ${round + 1}/${totalRounds} · Score : <b>${correct}</b></div><div class="count-grid">${symbols.map(s => `<div class="count-cell">${s}</div>`).join('')}</div>`;
+          activeTimers.push(setTimeout(() => showOptions(dragonCount), 2000));
+        }
+        function showOptions(rightAnswer){
+          const options = new Set([rightAnswer]);
+          while(options.size < 4){ options.add(Math.max(0, rightAnswer + Math.floor(Math.random() * 5) - 2)); }
+          const opts = shuffle([...options]);
+          container.innerHTML = `<div class="count-hud">Manche ${round + 1}/${totalRounds} · Score : <b>${correct}</b></div><p class="count-question">Combien de dragons as-tu vus ?</p><div class="count-options">${opts.map(o => `<button class="count-opt" data-v="${o}">${o}</button>`).join('')}</div>`;
+          container.querySelectorAll('.count-opt').forEach(btn => {
+            btn.addEventListener('click', () => {
+              if(parseInt(btn.dataset.v) === rightAnswer) correct++;
+              round++;
+              if(round >= totalRounds){ onEnd(`Score final : ${correct}/${totalRounds}`); }
+              else { playRound(); }
+            });
+          });
+        }
+        playRound();
+      }
+    }
+  ];
+
+  let previewIndex = 0;
+  let todayIndex = 0;
+  let gamesInitialised = false;
+
+  function stopCurrentGame(){
+    if(currentCleanup){ currentCleanup(); currentCleanup = null; }
+    clearActiveTimers();
+  }
+
+  function showStartScreen(index){
+    previewIndex = index;
+    stopCurrentGame();
+    const container = document.getElementById('game-container');
+    const resultEl = document.getElementById('game-result');
+    const restartBtn = document.getElementById('game-restart');
+    resultEl.textContent = '';
+    restartBtn.style.display = 'none';
+    const game = GAMES[index];
+    document.getElementById('game-title').textContent = game.icon + ' ' + game.name;
+    document.getElementById('game-instructions').textContent = game.instructions;
+    container.innerHTML = `<div class="start-screen"><p>L'épreuve utilise le clic ou le clavier dès que tu appuies sur le bouton.</p><button class="game-btn" id="game-start">▶ Débuter l'épreuve</button></div>`;
+    container.querySelector('#game-start').addEventListener('click', () => beginGame(index));
+    renderTabs();
+  }
+
+  function beginGame(index){
+    stopCurrentGame();
+    const container = document.getElementById('game-container');
+    const resultEl = document.getElementById('game-result');
+    const restartBtn = document.getElementById('game-restart');
+    resultEl.textContent = '';
+    restartBtn.style.display = 'none';
+    container.innerHTML = '';
+    const game = GAMES[index];
+    currentCleanup = game.init(container, (resultText) => {
+      resultEl.textContent = resultText;
+      restartBtn.style.display = 'inline-block';
+    }) || null;
+  }
+
+  function renderTabs(){
+    const tabs = document.getElementById('game-tabs');
+    tabs.innerHTML = '';
+    GAMES.forEach((g, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'game-dot' + (i === previewIndex ? ' active' : '') + (i === todayIndex ? ' today' : '');
+      dot.textContent = i + 1;
+      dot.addEventListener('click', () => showStartScreen(i));
+      tabs.appendChild(dot);
+    });
+  }
+
+  document.getElementById('game-restart').addEventListener('click', () => beginGame(previewIndex));
+
+  function setupGames(elapsed){
+    const newTodayIndex = elapsed % GAMES.length;
+    if(!gamesInitialised || newTodayIndex !== todayIndex){
+      gamesInitialised = true;
+      todayIndex = newTodayIndex;
+      showStartScreen(todayIndex);
+    } else {
+      renderTabs();
+    }
+  }
+
+  render();
+
+  const scrollHint = document.getElementById('scroll-hint');
+  scrollHint.addEventListener('click', () => {
+    document.getElementById('game-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  if('IntersectionObserver' in window){
+    const hintObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        scrollHint.classList.toggle('hidden', entry.isIntersecting);
+      });
+    }, { threshold: 0.15 });
+    hintObserver.observe(document.getElementById('game-section'));
+  }
+
+  setTimeout(function(){
+    setInterval(render, 24 * 60 * 60 * 1000);
+  }, 864e5 - (Date.now() % 864e5));
+
+  setInterval(function(){
+    const f = fieldsToday();
+    updatePath(f.progress);
+  }, 60 * 1000);
+</script>
 </body>
 </html>
